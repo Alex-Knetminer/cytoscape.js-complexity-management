@@ -1586,8 +1586,33 @@ function cueUtilities(params, cy, api) {
       });
       cy.on('tap', data.eTap = function (event) {
         var node = nodeWithRenderedCue;
+        if (didTapOnCue(node, event, options(), oldMousePos, currMousePos)) {
+          layoutOptions = _objectSpread2(_objectSpread2({}, layoutOptions), cy.options().layout);
+          var cbkRunLayout3checked = document.getElementById("cbk-run-layout3").checked;
+          var cbkFlagRecursiveChecked = document.getElementById("cbk-flag-recursive").checked;
+          if (api.isCollapsible(node)) {
+            clearDraws();
+            api.collapseNodes([node], cbkFlagRecursiveChecked);
+            layoutOrInitialize(cbkRunLayout3checked, cy, layoutOptions, initializer);
+          } else if (api.isExpandable(node)) {
+            clearDraws();
+            api.expandNodes([node], cbkFlagRecursiveChecked, cbkRunLayout3checked, pngImage, setLabelPosition);
+            setTimeout(function () {
+              layoutOrInitialize(cbkRunLayout3checked, cy, layoutOptions, initializer);
+            }, cbkRunLayout3checked ? 700 : 0);
+          }
+        }
+      });
+      function layoutOrInitialize(cbkRunLayout3checked, cy, layoutOptions, initializer) {
+        if (cbkRunLayout3checked) {
+          cy.layout(layoutOptions).run();
+        } else {
+          initializer(cy);
+        }
+      }
+      function didTapOnCue(node, event, opts, oldMousePos, currMousePos) {
         if (!node) {
-          return;
+          return false;
         }
         var expandcollapseRenderedStartX = node.data('expandcollapseRenderedStartX');
         var expandcollapseRenderedStartY = node.data('expandcollapseRenderedStartY');
@@ -1597,68 +1622,9 @@ function cueUtilities(params, cy, api) {
         var cyRenderedPos = event.renderedPosition || event.cyRenderedPosition;
         var cyRenderedPosX = cyRenderedPos.x;
         var cyRenderedPosY = cyRenderedPos.y;
-        var opts = options();
         var factor = (opts.expandCollapseCueSensitivity - 1) / 2;
-        if (Math.abs(oldMousePos.x - currMousePos.x) < 5 && Math.abs(oldMousePos.y - currMousePos.y) < 5 && cyRenderedPosX >= expandcollapseRenderedStartX - expandcollapseRenderedRectSize * factor && cyRenderedPosX <= expandcollapseRenderedEndX + expandcollapseRenderedRectSize * factor && cyRenderedPosY >= expandcollapseRenderedStartY - expandcollapseRenderedRectSize * factor && cyRenderedPosY <= expandcollapseRenderedEndY + expandcollapseRenderedRectSize * factor) {
-          layoutOptions = _objectSpread2(_objectSpread2({}, layoutOptions), cy.options().layout);
-          if (api.isCollapsible(node)) {
-            clearDraws();
-            if (document.getElementById("cbk-flag-recursive").checked) {
-              api.collapseNodes([node], true);
-            } else {
-              api.collapseNodes([node]);
-            }
-            if (document.getElementById("cbk-run-layout3").checked) {
-              cy.layout(layoutOptions).run();
-            } else {
-              initializer(cy);
-            }
-          } else if (api.isExpandable(node)) {
-            clearDraws();
-            if (document.getElementById("cbk-flag-recursive").checked) {
-              if (document.getElementById("cbk-run-layout3").checked) {
-                api.expandNodes([node], true, document.getElementById("cbk-run-layout3").checked, pngImage, setLabelPosition);
-                setTimeout(function () {
-                  if (document.getElementById("cbk-run-layout3").checked) {
-                    cy.layout(layoutOptions).run();
-                  } else {
-                    initializer(cy);
-                  }
-                }, document.getElementById("cbk-run-layout3").checked ? 700 : 0);
-              } else {
-                api.expandNodes([node], true, document.getElementById("cbk-run-layout3").checked, pngImage, setLabelPosition);
-                setTimeout(function () {
-                  if (document.getElementById("cbk-run-layout3").checked) {
-                    cy.layout(layoutOptions).run();
-                  } else {
-                    initializer(cy);
-                  }
-                }, document.getElementById("cbk-run-layout3").checked ? 700 : 0);
-              }
-            } else {
-              if (document.getElementById("cbk-run-layout3").checked) {
-                api.expandNodes([node], false, document.getElementById("cbk-run-layout3").checked, pngImage, setLabelPosition);
-                setTimeout(function () {
-                  if (document.getElementById("cbk-run-layout3").checked) {
-                    cy.layout(layoutOptions).run();
-                  } else {
-                    initializer(cy);
-                  }
-                }, document.getElementById("cbk-run-layout3").checked ? 700 : 0);
-              } else {
-                api.expandNodes([node], false, document.getElementById("cbk-run-layout3").checked, pngImage, setLabelPosition);
-                setTimeout(function () {
-                  if (document.getElementById("cbk-run-layout3").checked) {
-                    cy.layout(layoutOptions).run();
-                  } else {
-                    initializer(cy);
-                  }
-                }, document.getElementById("cbk-run-layout3").checked ? 700 : 0);
-              }
-            }
-          }
-        }
-      });
+        return Math.abs(oldMousePos.x - currMousePos.x) < 5 && Math.abs(oldMousePos.y - currMousePos.y) < 5 && cyRenderedPosX >= expandcollapseRenderedStartX - expandcollapseRenderedRectSize * factor && cyRenderedPosX <= expandcollapseRenderedEndX + expandcollapseRenderedRectSize * factor && cyRenderedPosY >= expandcollapseRenderedStartY - expandcollapseRenderedRectSize * factor && cyRenderedPosY <= expandcollapseRenderedEndY + expandcollapseRenderedRectSize * factor;
+      }
       cy.on('afterUndo afterRedo', data.eUndoRedo = data.eSelect);
 
       // cy.on('position', 'node', data.ePosition = debounce2(data.eSelect, CUE_POS_UPDATE_DELAY, clearDraws));

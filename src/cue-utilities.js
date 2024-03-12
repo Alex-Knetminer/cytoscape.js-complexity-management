@@ -654,8 +654,40 @@ export function cueUtilities(params, cy, api) {
 
       cy.on('tap', data.eTap = function (event) {
         let node = nodeWithRenderedCue;
+          if(didTapOnCue(node, event, options(), oldMousePos, currMousePos)){
+          layoutOptions = {...layoutOptions,...cy.options().layout};
+
+          const cbkRunLayout3checked = document.getElementById("cbk-run-layout3").checked;
+          const cbkFlagRecursiveChecked = document.getElementById("cbk-flag-recursive").checked;
+         
+          if (api.isCollapsible(node)) {
+            clearDraws();
+            api.collapseNodes([node], cbkFlagRecursiveChecked);
+            layoutOrInitialize(cbkRunLayout3checked, cy, layoutOptions, initializer);
+          }
+          else if (api.isExpandable(node)) {
+            clearDraws();
+            api.expandNodes([node], cbkFlagRecursiveChecked, cbkRunLayout3checked, pngImage,setLabelPosition);
+            setTimeout(() => {
+                layoutOrInitialize(cbkRunLayout3checked, cy, layoutOptions, initializer);
+            }, cbkRunLayout3checked?700:0);
+                  
+          }
+        }
+      });
+
+      function layoutOrInitialize(cbkRunLayout3checked, cy, layoutOptions, initializer){
+        if (cbkRunLayout3checked) {
+          cy.layout(layoutOptions).run();
+        }
+        else {
+          initializer(cy);
+        }
+      }
+
+      function didTapOnCue(node, event, opts, oldMousePos, currMousePos){
         if (!node) {
-          return;
+          return false;
         }
         let expandcollapseRenderedStartX = node.data('expandcollapseRenderedStartX');
         let expandcollapseRenderedStartY = node.data('expandcollapseRenderedStartY');
@@ -666,87 +698,14 @@ export function cueUtilities(params, cy, api) {
         let cyRenderedPos = event.renderedPosition || event.cyRenderedPosition;
         let cyRenderedPosX = cyRenderedPos.x;
         let cyRenderedPosY = cyRenderedPos.y;
-        let opts = options();
         let factor = (opts.expandCollapseCueSensitivity - 1) / 2;
 
-        if ((Math.abs(oldMousePos.x - currMousePos.x) < 5 && Math.abs(oldMousePos.y - currMousePos.y) < 5)
+        return ((Math.abs(oldMousePos.x - currMousePos.x) < 5 && Math.abs(oldMousePos.y - currMousePos.y) < 5)
           && cyRenderedPosX >= expandcollapseRenderedStartX - expandcollapseRenderedRectSize * factor
           && cyRenderedPosX <= expandcollapseRenderedEndX + expandcollapseRenderedRectSize * factor
           && cyRenderedPosY >= expandcollapseRenderedStartY - expandcollapseRenderedRectSize * factor
-          && cyRenderedPosY <= expandcollapseRenderedEndY + expandcollapseRenderedRectSize * factor) {
-          
-          layoutOptions = {...layoutOptions,...cy.options().layout};
-         
-          if (api.isCollapsible(node)) {
-            clearDraws();
-            if (document.getElementById("cbk-flag-recursive").checked) {
-              api.collapseNodes([node], true);
-            }else{
-              api.collapseNodes([node]);
-            }
-            if (document.getElementById("cbk-run-layout3").checked) {
-              cy.layout(layoutOptions).run();
-            }
-            else {
-              initializer(cy);
-            }
-          }
-          else if (api.isExpandable(node)) {
-            clearDraws();
-            if (document.getElementById("cbk-flag-recursive").checked) {
-              if (document.getElementById("cbk-run-layout3").checked) {
-
-                  api.expandNodes([node], true, document.getElementById("cbk-run-layout3").checked, pngImage,setLabelPosition);
-                  setTimeout(() => {
-                      if (document.getElementById("cbk-run-layout3").checked) {
-                        cy.layout(layoutOptions).run();
-                      }
-                      else {
-                        initializer(cy);
-                      }
-                  }, document.getElementById("cbk-run-layout3").checked?700:0);
-                  
-              }else{
-                api.expandNodes([node], true, document.getElementById("cbk-run-layout3").checked, pngImage,setLabelPosition);
-                setTimeout(() => {
-                    if (document.getElementById("cbk-run-layout3").checked) {
-                      cy.layout(layoutOptions).run();
-                    }
-                    else {
-                      initializer(cy);
-                    }
-                }, document.getElementById("cbk-run-layout3").checked?700:0);
-                  
-              }
-            }else{
-              if (document.getElementById("cbk-run-layout3").checked) {
-                api.expandNodes([node], false, document.getElementById("cbk-run-layout3").checked, pngImage,setLabelPosition);
-                setTimeout(() => {
-                    if (document.getElementById("cbk-run-layout3").checked) {
-                      cy.layout(layoutOptions).run();
-                    }
-                    else {
-                      initializer(cy);
-                    }
-                }, document.getElementById("cbk-run-layout3").checked?700:0);
-              }else{
-                api.expandNodes([node], false, document.getElementById("cbk-run-layout3").checked, pngImage,setLabelPosition);
-                setTimeout(() => {
-                    if (document.getElementById("cbk-run-layout3").checked) {
-                      cy.layout(layoutOptions).run();
-                    }
-                    else {
-                      initializer(cy);
-                    }
-                }, document.getElementById("cbk-run-layout3").checked?700:0);
-              }
-              
-              
-            }
-            
-          }
-        }
-      });
+          && cyRenderedPosY <= expandcollapseRenderedEndY + expandcollapseRenderedRectSize * factor)        
+      }
 
       cy.on('afterUndo afterRedo', data.eUndoRedo = data.eSelect);
 
