@@ -400,7 +400,7 @@ function moveChildren(node,translationFactor,focusID){
 export function cueUtilities(params, cy, api) {
 
   let fn = params;
-  const CUE_POS_UPDATE_DELAY = 100;
+  const CUE_POS_UPDATE_DELAY = 0;
   let nodeWithRenderedCue;
 
   const getData = function () {
@@ -592,13 +592,23 @@ export function cueUtilities(params, cy, api) {
         nodeWithRenderedCue = node;
       }
 
-      function drawImg(imgSrc, x, y, w, h) {
-        let img = new Image(w, h);
-        img.src = imgSrc;
-        img.onload = () => {
-          ctx.drawImage(img, x, y, w, h);
+      const drawImg = function () {
+        let __drawImg_lastImageSrc = null;
+        let img;
+        return function drawImg(imgSrc, x, y, w, h) {
+          if (imgSrc !== __drawImg_lastImageSrc) {
+            img = new Image(w, h);
+            img.src = imgSrc;
+            img.onload = () => {
+              ctx.drawImage(img, x, y, w, h);
+            };
+            __drawImg_lastImageSrc = imgSrc;
+          } else {
+            // console.log(img);
+            ctx.drawImage(img, x, y, w, h);
+          }
         };
-      }
+      }();
 
       cy.on('resize', data.eCyResize = function () {
         sizeCanvas();
@@ -740,7 +750,8 @@ export function cueUtilities(params, cy, api) {
 
       cy.on('afterUndo afterRedo', data.eUndoRedo = data.eSelect);
 
-      cy.on('position', 'node', data.ePosition = debounce2(data.eSelect, CUE_POS_UPDATE_DELAY, clearDraws));
+      // cy.on('position', 'node', data.ePosition = debounce2(data.eSelect, CUE_POS_UPDATE_DELAY, clearDraws));
+      cy.on('position', 'node', data.ePosition = data.eSelect);
 
       cy.on('pan zoom', data.ePosition);
 

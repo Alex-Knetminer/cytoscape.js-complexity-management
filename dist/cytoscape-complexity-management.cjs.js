@@ -50,6 +50,20 @@ function _objectSpread2(e) {
   }
   return e;
 }
+function _toPrimitive(t, r) {
+  if ("object" != typeof t || !t) return t;
+  var e = t[Symbol.toPrimitive];
+  if (void 0 !== e) {
+    var i = e.call(t, r || "default");
+    if ("object" != typeof i) return i;
+    throw new TypeError("@@toPrimitive must return a primitive value.");
+  }
+  return ("string" === r ? String : Number)(t);
+}
+function _toPropertyKey(t) {
+  var i = _toPrimitive(t, "string");
+  return "symbol" == typeof i ? i : String(i);
+}
 function _typeof(o) {
   "@babel/helpers - typeof";
 
@@ -106,20 +120,6 @@ function _nonIterableSpread() {
 }
 function _nonIterableRest() {
   throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
-}
-function _toPrimitive(input, hint) {
-  if (typeof input !== "object" || input === null) return input;
-  var prim = input[Symbol.toPrimitive];
-  if (prim !== undefined) {
-    var res = prim.call(input, hint || "default");
-    if (typeof res !== "object") return res;
-    throw new TypeError("@@toPrimitive must return a primitive value.");
-  }
-  return (hint === "string" ? String : Number)(input);
-}
-function _toPropertyKey(arg) {
-  var key = _toPrimitive(arg, "string");
-  return typeof key === "symbol" ? key : String(key);
 }
 
 function complexityManagement(cy) {
@@ -1355,38 +1355,6 @@ var debounce = function () {
   return debounce;
 }();
 
-var debounce2 = function () {
-  /**
-   * Slightly modified version of debounce. Calls fn2 at the beginning of frequent calls to fn1
-   * @static
-   * @category Function
-   * @param {Function} fn1 The function to debounce.
-   * @param {number} [wait=0] The number of milliseconds to delay.
-   * @param {Function} fn2 The function to call the beginning of frequent calls to fn1
-   * @returns {Function} Returns the new debounced function.
-   */
-  function debounce2(fn1, wait, fn2) {
-    var timeout;
-    var isInit = true;
-    return function () {
-      var context = this,
-        args = arguments;
-      var later = function later() {
-        timeout = null;
-        fn1.apply(context, args);
-        isInit = true;
-      };
-      clearTimeout(timeout);
-      timeout = setTimeout(later, wait);
-      if (isInit) {
-        fn2.apply(context, args);
-        isInit = false;
-      }
-    };
-  }
-  return debounce2;
-}();
-
 var layoutOptions = {
   name: "fcose",
   animate: true,
@@ -1418,7 +1386,6 @@ function setLabelPosition(position) {
 }
 function cueUtilities(params, cy, api) {
   var fn = params;
-  var CUE_POS_UPDATE_DELAY = 100;
   var nodeWithRenderedCue;
   var getData = function getData() {
     var scratch = cy.scratch('_cyExpandCollapse');
@@ -1567,13 +1534,23 @@ function cueUtilities(params, cy, api) {
         node._private.data.expandcollapseRenderedCueSize = expandcollapseRectSize;
         nodeWithRenderedCue = node;
       }
-      function drawImg(imgSrc, x, y, w, h) {
-        var img = new Image(w, h);
-        img.src = imgSrc;
-        img.onload = function () {
-          ctx.drawImage(img, x, y, w, h);
+      var drawImg = function () {
+        var __drawImg_lastImageSrc = null;
+        var img;
+        return function drawImg(imgSrc, x, y, w, h) {
+          if (imgSrc !== __drawImg_lastImageSrc) {
+            img = new Image(w, h);
+            img.src = imgSrc;
+            img.onload = function () {
+              ctx.drawImage(img, x, y, w, h);
+            };
+            __drawImg_lastImageSrc = imgSrc;
+          } else {
+            // console.log(img);
+            ctx.drawImage(img, x, y, w, h);
+          }
         };
-      }
+      }();
       cy.on('resize', data.eCyResize = function () {
         sizeCanvas();
       });
@@ -1685,7 +1662,9 @@ function cueUtilities(params, cy, api) {
         }
       });
       cy.on('afterUndo afterRedo', data.eUndoRedo = data.eSelect);
-      cy.on('position', 'node', data.ePosition = debounce2(data.eSelect, CUE_POS_UPDATE_DELAY, clearDraws));
+
+      // cy.on('position', 'node', data.ePosition = debounce2(data.eSelect, CUE_POS_UPDATE_DELAY, clearDraws));
+      cy.on('position', 'node', data.ePosition = data.eSelect);
       cy.on('pan zoom', data.ePosition);
 
       // write options to data
