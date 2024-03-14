@@ -53,39 +53,45 @@ function getDescendantsInorder(node) {
   return descendants;
 }
 
-function expandGraph(focusID,cy){
-    
+function expandGraph(focusID, cy) {
+
   let descendants = getDescendantsInorder(instance.getCompMgrInstance('get').mainGraphManager.nodesMap.get(focusID));
 
-  
+
 
   cyLayout.remove(cyLayout.elements());
 
   let fNode = cyLayout.add({
     group: 'nodes',
-    data: { id: focusID, 
-            parent: null,
-            'label' : document.getElementById("cbk-flag-display-node-labels").checked ? focusID : ''
-     }}
+    data: {
+      id: focusID,
+      parent: null,
+      'label': document.getElementById("cbk-flag-display-node-labels").checked ? focusID : ''
+    }
+  }
   )
-  fNode.style({'background-color': '#CCE1F9',})
+  fNode.style({ 'background-color': '#CCE1F9', })
   let savedNodes = [];
-  descendants.compoundNodes.forEach( node => {
-    if(cyLayout.getElementById( node.owner.parent.ID).length!=0){
+  descendants.compoundNodes.forEach(node => {
+    if (cyLayout.getElementById(node.owner.parent.ID).length != 0) {
       cyLayout.add({
         group: 'nodes',
-        data: { id: node.ID, 
-                parent: node.owner.parent.ID,
-                'label' : document.getElementById("cbk-flag-display-node-labels").checked ? node.ID : ''
-          }});
+        data: {
+          id: node.ID,
+          parent: node.owner.parent.ID,
+          'label': document.getElementById("cbk-flag-display-node-labels").checked ? node.ID : ''
+        }
+      });
 
-    }else{
+    } else {
       savedNodes.push({
         group: 'nodes',
-        data: { id: node.ID, 
-                parent: node.owner.parent.ID,
-                'label' : document.getElementById("cbk-flag-display-node-labels").checked ? node.ID : ''
-         }})
+        data: {
+          id: node.ID,
+          parent: node.owner.parent.ID,
+          'label': document.getElementById("cbk-flag-display-node-labels").checked ? node.ID : ''
+        }
+      })
     }
 
   })
@@ -94,131 +100,141 @@ function expandGraph(focusID,cy){
     cyLayout.add(cNodeData)
   })
 
-  descendants.simpleNodes.forEach( node => {
-    try{
-    cyLayout.add({
-      group: 'nodes',
-      data: { id: node.ID, 
-              parent: node.owner.parent.ID,
-              'label' : document.getElementById("cbk-flag-display-node-labels").checked ? node.ID : ''
-            }});
-        
-       }catch(e){
-          console.log(e);
-       }
-  })
+  descendants.simpleNodes.forEach(node => {
+    try {
+      cyLayout.add({
+        group: 'nodes',
+        data: {
+          id: node.ID,
+          parent: node.owner.parent.ID,
+          'label': document.getElementById("cbk-flag-display-node-labels").checked ? node.ID : ''
+        }
+      });
 
-  let e = [...descendants.edges]
-  
-  e.forEach( edge => {
-    try{
-      if(cyLayout.getElementById(edge.source.ID).length == 0  ){
-        
-        cyLayout.add({
-          group: 'nodes',
-          data: { id: edge.source.ID, 
-            'label' : document.getElementById("cbk-flag-display-node-labels").checked ? edge.source.ID : ''
-          }});
-          
-      }else if(cyLayout.getElementById(edge.target.ID).length == 0){
-
-        cyLayout.add({
-          group: 'nodes',
-          data: { id: edge.target.ID, 
-            'label' : document.getElementById("cbk-flag-display-node-labels").checked ? edge.target.ID : ''
-          }});
-          
-      }
-        cyLayout.add({
-          group: 'edges',
-          data: { id: edge.ID, 
-                  source: edge.source.ID, 
-                  target: edge.target.ID,
-                }
-        });
-
-      
-    }catch(e){
+    } catch (e) {
+      console.log(e);
     }
   })
 
-  while(true){
-    try{
-      cyLayout.layout({name: 'fcose', animate: false}).run();
+  let e = [...descendants.edges]
+
+  e.forEach(edge => {
+    try {
+      if (cyLayout.getElementById(edge.source.ID).length == 0) {
+
+        cyLayout.add({
+          group: 'nodes',
+          data: {
+            id: edge.source.ID,
+            'label': document.getElementById("cbk-flag-display-node-labels").checked ? edge.source.ID : ''
+          }
+        });
+
+      } else if (cyLayout.getElementById(edge.target.ID).length == 0) {
+
+        cyLayout.add({
+          group: 'nodes',
+          data: {
+            id: edge.target.ID,
+            'label': document.getElementById("cbk-flag-display-node-labels").checked ? edge.target.ID : ''
+          }
+        });
+
+      }
+      cyLayout.add({
+        group: 'edges',
+        data: {
+          id: edge.ID,
+          source: edge.source.ID,
+          target: edge.target.ID,
+        }
+      });
+
+
+    } catch (e) {
+    }
+  })
+
+  while (true) {
+    try {
+      cyLayout.layout({ name: 'fcose', animate: false }).run();
       break;
-    }catch(e){
+    } catch (e) {
       console.log(e)
       break;
     }
   }
 
 
-   const boundingBox = cyLayout.getElementById(focusID).boundingBox();
-  
+  const boundingBox = cyLayout.getElementById(focusID).boundingBox();
+
   var focusNodeWidth = boundingBox.w;
   var fcousNodeHeight = boundingBox.h;
 
-  cyLayout.nodes().forEach(node => {node.style('label', node.id());})
+  cyLayout.nodes().forEach(node => { node.style('label', node.id()); })
   radioButtons.forEach(function(radio) {
-    if(radio.checked){
+    if (radio.checked) {
       setLabelPosition(radio.value);
     }
   });
   pngSizeProxyGraph = cyLayout.png({
-    scale:2,
-    full:true
+    scale: 2,
+    full: true
   });
-  
+
   cyLayout.remove(cyLayout.elements());
-  
+
 
   let topLevelFocusParent = getTopParent(cy.getElementById(focusID));
   cy.nodes().unselect();
   let compoundsCounter = 1;
   let componentNodes = []
-  
+
   cy.nodes().forEach(node => {
-    if(node.id()!= topLevelFocusParent.id() && node.parent().length == 0){
-      if(node.isChildless()){
+    if (node.id() != topLevelFocusParent.id() && node.parent().length == 0) {
+      if (node.isChildless()) {
         node.select();
-       
-      }else{
+
+      } else {
         selectChildren(node);
       }
-        var newboundingBox = cy.collection(cy.$(":selected")).boundingBox();
-        newboundingBox = {...newboundingBox,w: node.width(),h:node.height()};
-        var width = newboundingBox.w;
-        var height = newboundingBox.h;
-        
-        componentNodes.push({id: node.id(),data:cy.$(":selected"),pos:{
-          x: (newboundingBox.x2 + newboundingBox.x1)/2,
-          y: (newboundingBox.y1 + newboundingBox.y2)/2}});
-        var newNode = cyLayout.add({
-              group: 'nodes',
-              data: {
-                id: node.id(),
-                label: node.id()
-              },
-            });
-      
-      
-            newNode.position({
-              x: (newboundingBox.x2 + newboundingBox.x1)/2,
-              y: (newboundingBox.y1 + newboundingBox.y2)/2
-            });
-      
-            newNode.style({
-              'width': Math.max(width,height), // Set the new width of the node
-              'height': Math.max(width,height), // Set the new height of the node
-              'label' : document.getElementById("cbk-flag-display-node-labels").checked ? newNode.data().id : ''
-            });
-            
-            cy.nodes().unselect();
-            compoundsCounter++;
+      var newboundingBox = cy.collection(cy.$(":selected")).boundingBox();
+      newboundingBox = { ...newboundingBox, w: node.width(), h: node.height() };
+      var width = newboundingBox.w;
+      var height = newboundingBox.h;
+
+      componentNodes.push({
+        id: node.id(), data: cy.$(":selected"), pos: {
+          x: (newboundingBox.x2 + newboundingBox.x1) / 2,
+          y: (newboundingBox.y1 + newboundingBox.y2) / 2
+        }
+      });
+      var newNode = cyLayout.add({
+        group: 'nodes',
+        data: {
+          id: node.id(),
+          label: node.id()
+        },
+      });
+
+
+      newNode.position({
+        x: (newboundingBox.x2 + newboundingBox.x1) / 2,
+        y: (newboundingBox.y1 + newboundingBox.y2) / 2
+      });
+
+      newNode.style({
+        'width': Math.max(width, height), // Set the new width of the node
+        'height': Math.max(width, height), // Set the new height of the node
+        'label': document.getElementById("cbk-flag-display-node-labels").checked ? newNode.data().id : ''
+      });
+
+      cy.nodes().unselect();
+      compoundsCounter++;
     }
   })
-  
-  if(cy.getElementById(focusID).parent().length == 0){
+
+  if (cy.getElementById(focusID).parent().length == 0) {
     let focusNode = cyLayout.add(cy.getElementById(focusID).clone());
     focusNode.unselect();
 
@@ -227,12 +243,12 @@ function expandGraph(focusID,cy){
       y: cy.getElementById(focusID).position().y
     });
     focusNode.style({
-      'width': Math.max(focusNodeWidth,fcousNodeHeight)+'px', // Set the new width of the node
-      'height': Math.max(focusNodeWidth,fcousNodeHeight)+'px',// Set the new height of the node
+      'width': Math.max(focusNodeWidth, fcousNodeHeight) + 'px', // Set the new width of the node
+      'height': Math.max(focusNodeWidth, fcousNodeHeight) + 'px',// Set the new height of the node
       'background-color': '#CCE1F9',
-      'label' : document.getElementById("cbk-flag-display-node-labels").checked ? focusNode.data().id : ''
+      'label': document.getElementById("cbk-flag-display-node-labels").checked ? focusNode.data().id : ''
     });
-  }else{
+  } else {
     var newNode = cyLayout.add({
       group: 'nodes',
       data: {
@@ -247,67 +263,70 @@ function expandGraph(focusID,cy){
       y: topLevelFocusParent.position().y
     });
     newNode.style({
-      'label' : document.getElementById("cbk-flag-display-node-labels").checked ? newNode.data().id : ''
+      'label': document.getElementById("cbk-flag-display-node-labels").checked ? newNode.data().id : ''
     });
     compoundsCounter++;
 
     // addAllChildren(topLevelFocusParent,'compound'+(compoundsCounter-1),cyLayout,compoundsCounter,componentNodes,focusID,fcousNodeHeight,focusNodeWidth);
-  
+
     // let descdents = getDescendantsInorderCyGraph(topLevelFocusParent)
     // let children = [...descdents.compoundNodes,...descdents.simpleNodes]
 
     selectChildren(topLevelFocusParent);
     let children = cy.$(":selected")
-    
+
     cy.nodes().unselect();
     let nodeCache = []
     cyLayout.add(children)
     children.forEach(child => {
       child.select()
       var newboundingBox = cy.collection(cy.$(":selected")).boundingBox();
-      newboundingBox = {...newboundingBox,w: child.width(),h:child.height()};
+      newboundingBox = { ...newboundingBox, w: child.width(), h: child.height() };
       var width = newboundingBox.w;
       var height = newboundingBox.h;
-       
-      if(child.id() != focusID){
-        if(child.isChildless()){
-          componentNodes.push({id: child.id(), data:cy.$(":selected"),pos:{
-              x: (newboundingBox.x2 + newboundingBox.x1)/2,
-              y: (newboundingBox.y1 + newboundingBox.y2)/2}});
 
-            
-                newNode = cyLayout.getElementById(child.id())
-                newNode.position({
-                  x: (newboundingBox.x2 + newboundingBox.x1)/2,
-                  y: (newboundingBox.y1 + newboundingBox.y2)/2
-                });
-          
-                newNode.style({
-                  'width': Math.max(width,height)+'px', // Set the new width of the node
-                  'height': Math.max(width,height)+'px', // Set the new height of the node
-                  'label' : document.getElementById("cbk-flag-display-node-labels").checked ? newNode.data().id : ''
-                });
-                compoundsCounter++;
-        }else{
+      if (child.id() != focusID) {
+        if (child.isChildless()) {
+          componentNodes.push({
+            id: child.id(), data: cy.$(":selected"), pos: {
+              x: (newboundingBox.x2 + newboundingBox.x1) / 2,
+              y: (newboundingBox.y1 + newboundingBox.y2) / 2
+            }
+          });
+
+
+          newNode = cyLayout.getElementById(child.id())
+          newNode.position({
+            x: (newboundingBox.x2 + newboundingBox.x1) / 2,
+            y: (newboundingBox.y1 + newboundingBox.y2) / 2
+          });
+
+          newNode.style({
+            'width': Math.max(width, height) + 'px', // Set the new width of the node
+            'height': Math.max(width, height) + 'px', // Set the new height of the node
+            'label': document.getElementById("cbk-flag-display-node-labels").checked ? newNode.data().id : ''
+          });
           compoundsCounter++;
-    
-        }
-      }else{
-        
+        } else {
+          compoundsCounter++;
 
-          let newFNode = cyLayout.getElementById(child.id())
-          newFNode.position({
-              x: child.position().x,
-              y: child.position().y
-            });
-      
-            newFNode.style({
-              'width': Math.max(focusNodeWidth,fcousNodeHeight)+'px', // Set the new width of the node
-              'height': Math.max(focusNodeWidth,fcousNodeHeight)+'px', // Set the new height of the node
-              'background-color':'#CCE1F9',
-              'label' : document.getElementById("cbk-flag-display-node-labels").checked ? newFNode.data().id : ''
-            });
-            compoundsCounter++;
+        }
+      } else {
+
+
+        let newFNode = cyLayout.getElementById(child.id())
+        newFNode.position({
+          x: child.position().x,
+          y: child.position().y
+        });
+
+        newFNode.style({
+          'width': Math.max(focusNodeWidth, fcousNodeHeight) + 'px', // Set the new width of the node
+          'height': Math.max(focusNodeWidth, fcousNodeHeight) + 'px', // Set the new height of the node
+          'background-color': '#CCE1F9',
+          'label': document.getElementById("cbk-flag-display-node-labels").checked ? newFNode.data().id : ''
+        });
+        compoundsCounter++;
       }
       cy.nodes().unselect();
 
@@ -319,20 +338,20 @@ function expandGraph(focusID,cy){
 
   cyLayout.layout({
     name: 'fcose',
-      quality: "proof",
-      animate:true,
-      animationDuration: 500,
-      randomize: false, 
-      nodeSeparation: 25,
-    fixedNodeConstraint:[{nodeId: focusID, position: {x: cy.$('#'+focusID).position('x'),y:cy.$('#'+focusID).position('y')}}]
+    quality: "proof",
+    animate: true,
+    animationDuration: 500,
+    randomize: false,
+    nodeSeparation: 25,
+    fixedNodeConstraint: [{ nodeId: focusID, position: { x: cy.$('#' + focusID).position('x'), y: cy.$('#' + focusID).position('y') } }]
 
   }).run();
 
   componentNodes.forEach(component => {
-    let newComponentPosition = translateComponent(cyLayout.getElementById(focusID).position(),cyLayout.getElementById(component.id).position(), cy.getElementById(focusID).position());
-    let translationFactor = translateNode(component.pos,newComponentPosition);
+    let newComponentPosition = translateComponent(cyLayout.getElementById(focusID).position(), cyLayout.getElementById(component.id).position(), cy.getElementById(focusID).position());
+    let translationFactor = translateNode(component.pos, newComponentPosition);
     component.data.forEach(node => {
-      moveChildren(node,translationFactor,focusID);
+      moveChildren(node, translationFactor, focusID);
     })
   })
 
@@ -340,24 +359,24 @@ function expandGraph(focusID,cy){
 
   cy.getElementById(focusID).select();
   radioButtons.forEach(function(radio) {
-    if(radio.checked){
+    if (radio.checked) {
       setLabelPosition(radio.value);
     }
   });
 }
 
-function translateNode(a,a1) {
+function translateNode(a, a1) {
   // Step 1: Find the displacement vector d between a and a1
   return { x: a1.x - a.x, y: a1.y - a.y };
-  
+
 }
 
-function translateComponent(focusNodeInCyLayout,componentNodeInCyLayout,FocusNodeInCy) {
+function translateComponent(focusNodeInCyLayout, componentNodeInCyLayout, FocusNodeInCy) {
 
-  let d = {x:componentNodeInCyLayout.x-focusNodeInCyLayout.x,y:componentNodeInCyLayout.y-focusNodeInCyLayout.y};
+  let d = { x: componentNodeInCyLayout.x - focusNodeInCyLayout.x, y: componentNodeInCyLayout.y - focusNodeInCyLayout.y };
 
   return { x: FocusNodeInCy.x + d.x, y: FocusNodeInCy.y + d.y };
-  
+
 }
 
 
@@ -373,25 +392,25 @@ function selectChildren(node) {
 }
 
 function getTopParent(node) {
-  if(node.parent().length!=0){
+  if (node.parent().length != 0) {
     return getTopParent(node.parent())
-  }else{
+  } else {
     return node
   }
 }
 
-function moveChildren(node,translationFactor,focusID){
-  if(node.isChildless() && node.id() != focusID){
+function moveChildren(node, translationFactor, focusID) {
+  if (node.isChildless() && node.id() != focusID) {
     node.animate({
       position: { x: node.position().x + translationFactor.x, y: node.position().y + translationFactor.y },
-      
+
     }, {
       duration: 500
     });
     // node.shift({ x: translationFactor.x, y: translationFactor.y }, { duration: 500 });
-  }else{
-    node.children().forEach(child =>{
-      moveChildren(child,translationFactor,focusID)
+  } else {
+    node.children().forEach(child => {
+      moveChildren(child, translationFactor, focusID)
     })
   }
 }
@@ -403,12 +422,12 @@ export function cueUtilities(params, cy, api) {
   const CUE_POS_UPDATE_DELAY = 0;
   let nodeWithRenderedCue;
 
-  const getData = function () {
+  const getData = function() {
     let scratch = cy.scratch('_cyExpandCollapse');
     return scratch && scratch.cueUtilities;
   };
 
-  const setData = function (data) {
+  const setData = function(data) {
     let scratch = cy.scratch('_cyExpandCollapse');
     if (scratch == null) {
       scratch = {};
@@ -419,14 +438,14 @@ export function cueUtilities(params, cy, api) {
   };
 
   let functions = {
-    init: function () {
+    init: function() {
       let canvas = document.createElement('canvas');
       canvas.classList.add("expand-collapse-canvas");
       let container = document.getElementById('cy');
       let ctx = canvas.getContext('2d');
       container.appendChild(canvas);
 
-      let offset = function (elt) {
+      let offset = function(elt) {
         let rect = elt.getBoundingClientRect();
 
         return {
@@ -435,31 +454,31 @@ export function cueUtilities(params, cy, api) {
         }
       }
       function resize() {
-				const width = container.offsetWidth;
-				const height = container.offsetHeight;
+        const width = container.offsetWidth;
+        const height = container.offsetHeight;
 
-				const canvasWidth = width * options.pixelRatio;
-				const canvasHeight = height * options.pixelRatio;
+        const canvasWidth = width * options.pixelRatio;
+        const canvasHeight = height * options.pixelRatio;
 
-				canvas.width = canvasWidth;
-				canvas.height = canvasHeight;
+        canvas.width = canvasWidth;
+        canvas.height = canvasHeight;
 
-				canvas.style.width = `${width}px`;
-				canvas.style.height = `${height}px`;
+        canvas.style.width = `${width}px`;
+        canvas.style.height = `${height}px`;
 
-				cy.trigger("cyCanvas.resize");
-			}
+        cy.trigger("cyCanvas.resize");
+      }
 
-			cy.on("resize", () => {
-				resize();
-			});
-      
-			canvas.setAttribute(
-				"style",
-				`position:absolute; top:0; left:0; z-index:${options().zIndex};`,
-			);
+      cy.on("resize", () => {
+        resize();
+      });
 
-      let _sizeCanvas = debounce(function () {
+      canvas.setAttribute(
+        "style",
+        `position:absolute; top:0; left:0; z-index:${options().zIndex};`,
+      );
+
+      let _sizeCanvas = debounce(function() {
         canvas.height = cy.container().offsetHeight;
         canvas.width = cy.container().offsetWidth;
         canvas.style.position = 'absolute';
@@ -467,7 +486,7 @@ export function cueUtilities(params, cy, api) {
         canvas.style.left = 0;
         canvas.style.zIndex = options().zIndex;
 
-        setTimeout(function () {
+        setTimeout(function() {
           let canvasBb = offset(canvas);
           let containerBb = offset(container);
           canvas.style.top = -(canvasBb.top - containerBb.top);
@@ -486,7 +505,7 @@ export function cueUtilities(params, cy, api) {
       }
 
       resize();
-      
+
       let data = {};
 
       // if there are events field in data unbind them here
@@ -508,7 +527,7 @@ export function cueUtilities(params, cy, api) {
       }
 
       function drawExpandCollapseCue(node) {
-        
+
         let isCollapsed = node.hasClass('cy-expand-collapse-collapsed-node');
 
         //Draw expand-collapse rectangles
@@ -523,7 +542,7 @@ export function cueUtilities(params, cy, api) {
           let nodeBorderWid = parseFloat(node.css('border-width'));
           let x = node.position('x') - node.width() / 2 - parseFloat(node.css('padding-left'))
             + nodeBorderWid + size + offset;
-            let y = node.position('y') - node.height() / 2 - parseFloat(node.css('padding-top'))
+          let y = node.position('y') - node.height() / 2 - parseFloat(node.css('padding-top'))
             + nodeBorderWid + size + offset;
 
           cueCenter = { x: x, y: y };
@@ -592,11 +611,13 @@ export function cueUtilities(params, cy, api) {
         nodeWithRenderedCue = node;
       }
 
-      const drawImg = function () {
+      const drawImg = function() {
         let __drawImg_lastImageSrc = null;
         let img;
         return function drawImg(imgSrc, x, y, w, h) {
+          console.log(`imgSrc: ${imgSrc}`);
           if (imgSrc !== __drawImg_lastImageSrc) {
+            console.log('loading image directly');
             img = new Image(w, h);
             img.src = imgSrc;
             img.onload = () => {
@@ -604,32 +625,32 @@ export function cueUtilities(params, cy, api) {
             };
             __drawImg_lastImageSrc = imgSrc;
           } else {
-            // console.log(img);
+            console.log('using cached image');
             ctx.drawImage(img, x, y, w, h);
           }
         };
       }();
 
-      cy.on('resize', data.eCyResize = function () {
+      cy.on('resize', data.eCyResize = function() {
         sizeCanvas();
       });
 
-      cy.on('expandcollapse.clearvisualcue', function () {
+      cy.on('expandcollapse.clearvisualcue', function() {
         if (nodeWithRenderedCue) {
           clearDraws();
         }
       });
 
       let oldMousePos = null, currMousePos = null;
-      cy.on('mousedown', data.eMouseDown = function (e) {
+      cy.on('mousedown', data.eMouseDown = function(e) {
         oldMousePos = e.renderedPosition || e.cyRenderedPosition
       });
 
-      cy.on('mouseup', data.eMouseUp = function (e) {
+      cy.on('mouseup', data.eMouseUp = function(e) {
         currMousePos = e.renderedPosition || e.cyRenderedPosition
       });
 
-      cy.on('remove', 'node', data.eRemove = function (evt) {
+      cy.on('remove', 'node', data.eRemove = function(evt) {
         const node = evt.target;
         if (node == nodeWithRenderedCue) {
           clearDraws();
@@ -637,7 +658,7 @@ export function cueUtilities(params, cy, api) {
       });
 
       let ur;
-      cy.on('select unselect', data.eSelect = function () {
+      cy.on('select unselect', data.eSelect = function() {
         if (nodeWithRenderedCue) {
           clearDraws();
         }
@@ -646,37 +667,25 @@ export function cueUtilities(params, cy, api) {
           return;
         }
         let selectedNode = selectedNodes[0];
-        
+
         if (api.isExpandable(selectedNode) || api.isCollapsible(selectedNode)) {
           drawExpandCollapseCue(selectedNode);
         }
       });
 
-      cy.on('tap', data.eTap = function (event) {
+      cy.on('tap', data.eTap = function(event) {
         let node = nodeWithRenderedCue;
-          if(didTapOnCue(node, event, options(), oldMousePos, currMousePos)){
-          layoutOptions = {...layoutOptions,...cy.options().layout};
-
-          const cbkRunLayout3checked = document.getElementById("cbk-run-layout3").checked;
-          const cbkFlagRecursiveChecked = document.getElementById("cbk-flag-recursive").checked;
-         
-          if (api.isCollapsible(node)) {
-            clearDraws();
-            api.collapseNodes([node], cbkFlagRecursiveChecked);
-            layoutOrInitialize(cbkRunLayout3checked, cy, layoutOptions, initializer);
-          }
-          else if (api.isExpandable(node)) {
-            clearDraws();
-            api.expandNodes([node], cbkFlagRecursiveChecked, cbkRunLayout3checked, pngImage,setLabelPosition);
-            setTimeout(() => {
-                layoutOrInitialize(cbkRunLayout3checked, cy, layoutOptions, initializer);
-            }, cbkRunLayout3checked?700:0);
-                  
-          }
-        }
+        if (didTapOnCue(node, event, options(), oldMousePos, currMousePos)) processCueTap(layoutOptions,
+          node,
+          clearDraws,
+          cy,
+          initializer,
+          pngImage,
+          setLabelPosition
+        )
       });
 
-      function layoutOrInitialize(cbkRunLayout3checked, cy, layoutOptions, initializer){
+      function layoutOrInitialize(cbkRunLayout3checked, cy, layoutOptions, initializer) {
         if (cbkRunLayout3checked) {
           cy.layout(layoutOptions).run();
         }
@@ -685,7 +694,28 @@ export function cueUtilities(params, cy, api) {
         }
       }
 
-      function didTapOnCue(node, event, opts, oldMousePos, currMousePos){
+      function processCueTap(layoutOptions, node, clearDraws, cy, initializer, pngImage, setLabelPosition) {
+        layoutOptions = { ...layoutOptions, ...cy.options().layout };
+
+        const cbkRunLayout3checked = document.getElementById("cbk-run-layout3").checked;
+        const cbkFlagRecursiveChecked = document.getElementById("cbk-flag-recursive").checked;
+
+        if (api.isCollapsible(node)) {
+          clearDraws();
+          api.collapseNodes([node], cbkFlagRecursiveChecked);
+          layoutOrInitialize(cbkRunLayout3checked, cy, layoutOptions, initializer);
+        }
+        else if (api.isExpandable(node)) {
+          clearDraws();
+          api.expandNodes([node], cbkFlagRecursiveChecked, cbkRunLayout3checked, pngImage, setLabelPosition);
+          setTimeout(() => {
+            layoutOrInitialize(cbkRunLayout3checked, cy, layoutOptions, initializer);
+          }, cbkRunLayout3checked ? 700 : 0);
+
+        }
+      }
+
+      function didTapOnCue(node, event, opts, oldMousePos, currMousePos) {
         if (!node) {
           return false;
         }
@@ -704,7 +734,7 @@ export function cueUtilities(params, cy, api) {
           && cyRenderedPosX >= expandcollapseRenderedStartX - expandcollapseRenderedRectSize * factor
           && cyRenderedPosX <= expandcollapseRenderedEndX + expandcollapseRenderedRectSize * factor
           && cyRenderedPosY >= expandcollapseRenderedStartY - expandcollapseRenderedRectSize * factor
-          && cyRenderedPosY <= expandcollapseRenderedEndY + expandcollapseRenderedRectSize * factor)        
+          && cyRenderedPosY <= expandcollapseRenderedEndY + expandcollapseRenderedRectSize * factor)
       }
 
       cy.on('afterUndo afterRedo', data.eUndoRedo = data.eSelect);
@@ -718,7 +748,7 @@ export function cueUtilities(params, cy, api) {
       data.hasEventFields = true;
       setData(data);
     },
-    unbind: function () {
+    unbind: function() {
       // let $container = this;
       let data = getData();
 
@@ -741,7 +771,7 @@ export function cueUtilities(params, cy, api) {
         .off('resize', data.eCyResize)
         .off('afterUndo afterRedo', data.eUndoRedo);
     },
-    rebind: function () {
+    rebind: function() {
       let data = getData();
 
       if (!data.hasEventFields) {
@@ -763,7 +793,7 @@ export function cueUtilities(params, cy, api) {
     }
   };
 
-  let convertToRenderedPosition = function (modelPosition) {
+  let convertToRenderedPosition = function(modelPosition) {
     var pan = cy.pan();
     var zoom = cy.zoom();
 

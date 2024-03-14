@@ -5859,7 +5859,9 @@
           var __drawImg_lastImageSrc = null;
           var img;
           return function drawImg(imgSrc, x, y, w, h) {
+            console.log("imgSrc: ".concat(imgSrc));
             if (imgSrc !== __drawImg_lastImageSrc) {
+              console.log('loading image directly');
               img = new Image(w, h);
               img.src = imgSrc;
               img.onload = function () {
@@ -5867,7 +5869,7 @@
               };
               __drawImg_lastImageSrc = imgSrc;
             } else {
-              // console.log(img);
+              console.log('using cached image');
               ctx.drawImage(img, x, y, w, h);
             }
           };
@@ -5909,28 +5911,29 @@
         });
         cy.on('tap', data.eTap = function (event) {
           var node = nodeWithRenderedCue;
-          if (didTapOnCue(node, event, options(), oldMousePos, currMousePos)) {
-            layoutOptions = _objectSpread2(_objectSpread2({}, layoutOptions), cy.options().layout);
-            var cbkRunLayout3checked = document.getElementById("cbk-run-layout3").checked;
-            var cbkFlagRecursiveChecked = document.getElementById("cbk-flag-recursive").checked;
-            if (api.isCollapsible(node)) {
-              clearDraws();
-              api.collapseNodes([node], cbkFlagRecursiveChecked);
-              layoutOrInitialize(cbkRunLayout3checked, cy, layoutOptions, initializer);
-            } else if (api.isExpandable(node)) {
-              clearDraws();
-              api.expandNodes([node], cbkFlagRecursiveChecked, cbkRunLayout3checked, pngImage, setLabelPosition);
-              setTimeout(function () {
-                layoutOrInitialize(cbkRunLayout3checked, cy, layoutOptions, initializer);
-              }, cbkRunLayout3checked ? 700 : 0);
-            }
-          }
+          if (didTapOnCue(node, event, options(), oldMousePos, currMousePos)) processCueTap(layoutOptions, node, clearDraws, cy, initializer, pngImage, setLabelPosition);
         });
         function layoutOrInitialize(cbkRunLayout3checked, cy, layoutOptions, initializer) {
           if (cbkRunLayout3checked) {
             cy.layout(layoutOptions).run();
           } else {
             initializer(cy);
+          }
+        }
+        function processCueTap(layoutOptions, node, clearDraws, cy, initializer, pngImage, setLabelPosition) {
+          layoutOptions = _objectSpread2(_objectSpread2({}, layoutOptions), cy.options().layout);
+          var cbkRunLayout3checked = document.getElementById("cbk-run-layout3").checked;
+          var cbkFlagRecursiveChecked = document.getElementById("cbk-flag-recursive").checked;
+          if (api.isCollapsible(node)) {
+            clearDraws();
+            api.collapseNodes([node], cbkFlagRecursiveChecked);
+            layoutOrInitialize(cbkRunLayout3checked, cy, layoutOptions, initializer);
+          } else if (api.isExpandable(node)) {
+            clearDraws();
+            api.expandNodes([node], cbkFlagRecursiveChecked, cbkRunLayout3checked, pngImage, setLabelPosition);
+            setTimeout(function () {
+              layoutOrInitialize(cbkRunLayout3checked, cy, layoutOptions, initializer);
+            }, cbkRunLayout3checked ? 700 : 0);
           }
         }
         function didTapOnCue(node, event, opts, oldMousePos, currMousePos) {
