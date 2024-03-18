@@ -622,8 +622,8 @@ export function cueUtilities(params, cy, api) {
             img.src = imgSrc;
             img.onload = () => {
               ctx.drawImage(img, x, y, w, h);
+              __drawImg_lastImageSrc = imgSrc;
             };
-            __drawImg_lastImageSrc = imgSrc;
           } else {
             console.log('using cached image');
             ctx.drawImage(img, x, y, w, h);
@@ -695,6 +695,7 @@ export function cueUtilities(params, cy, api) {
       }
 
       function processCueTap(layoutOptions, node, clearDraws, cy, initializer, pngImage, setLabelPosition) {
+        console.log('Called processCueTap');
         layoutOptions = { ...layoutOptions, ...cy.options().layout };
 
         const cbkRunLayout3checked = document.getElementById("cbk-run-layout3").checked;
@@ -707,8 +708,15 @@ export function cueUtilities(params, cy, api) {
         }
         else if (api.isExpandable(node)) {
           clearDraws();
-          api.expandNodes([node], cbkFlagRecursiveChecked, cbkRunLayout3checked, pngImage, setLabelPosition);
+          console.log(`[node]: ${[node]} cbkFlagRecursiveChecked: ${cbkFlagRecursiveChecked} cbkRunLayout3checked: ${cbkRunLayout3checked} pngImage: ${pngImage} setLabelPosition: ${setLabelPosition}`);
+          try {
+            api.expandNodes([node], cbkFlagRecursiveChecked, cbkRunLayout3checked, pngImage, setLabelPosition);
+          } catch (e) {
+            console.error(e);
+            console.log('couldn\'t expand nodes');
+          }
           setTimeout(() => {
+            clearDraws();
             layoutOrInitialize(cbkRunLayout3checked, cy, layoutOptions, initializer);
           }, cbkRunLayout3checked ? 700 : 0);
 
