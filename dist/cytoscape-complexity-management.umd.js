@@ -5859,17 +5859,17 @@
           var __drawImg_lastImageSrc = null;
           var img;
           return function drawImg(imgSrc, x, y, w, h) {
-            console.log("imgSrc: ".concat(imgSrc));
+            // console.log(`imgSrc: ${imgSrc}`);
             if (imgSrc !== __drawImg_lastImageSrc) {
-              console.log('loading image directly');
+              // console.log('loading image directly');
               img = new Image(w, h);
               img.src = imgSrc;
               img.onload = function () {
                 ctx.drawImage(img, x, y, w, h);
+                __drawImg_lastImageSrc = imgSrc;
               };
-              __drawImg_lastImageSrc = imgSrc;
             } else {
-              console.log('using cached image');
+              // console.log('using cached image');
               ctx.drawImage(img, x, y, w, h);
             }
           };
@@ -5921,6 +5921,7 @@
           }
         }
         function processCueTap(layoutOptions, node, clearDraws, cy, initializer, pngImage, setLabelPosition) {
+          console.log('Called processCueTap');
           layoutOptions = _objectSpread2(_objectSpread2({}, layoutOptions), cy.options().layout);
           var cbkRunLayout3checked = document.getElementById("cbk-run-layout3").checked;
           var cbkFlagRecursiveChecked = document.getElementById("cbk-flag-recursive").checked;
@@ -5930,8 +5931,15 @@
             layoutOrInitialize(cbkRunLayout3checked, cy, layoutOptions, initializer);
           } else if (api.isExpandable(node)) {
             clearDraws();
-            api.expandNodes([node], cbkFlagRecursiveChecked, cbkRunLayout3checked, pngImage, setLabelPosition);
+            console.log("[node]: ".concat([node], " cbkFlagRecursiveChecked: ").concat(cbkFlagRecursiveChecked, " cbkRunLayout3checked: ").concat(cbkRunLayout3checked, " pngImage: ").concat(pngImage, " setLabelPosition: ").concat(setLabelPosition));
+            try {
+              api.expandNodes([node], cbkFlagRecursiveChecked, cbkRunLayout3checked, pngImage, setLabelPosition);
+            } catch (e) {
+              console.error(e);
+              console.log('couldn\'t expand nodes');
+            }
             setTimeout(function () {
+              clearDraws();
               layoutOrInitialize(cbkRunLayout3checked, cy, layoutOptions, initializer);
             }, cbkRunLayout3checked ? 700 : 0);
           }
