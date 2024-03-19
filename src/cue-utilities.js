@@ -615,9 +615,9 @@ export function cueUtilities(params, cy, api) {
         let __drawImg_lastImageSrc = null;
         let img;
         return function drawImg(imgSrc, x, y, w, h) {
-          console.log(`imgSrc: ${imgSrc}`);
+          // console.log(`imgSrc: ${imgSrc}`);
           if (imgSrc !== __drawImg_lastImageSrc) {
-            console.log('loading image directly');
+            // console.log('loading image directly');
             img = new Image(w, h);
             img.src = imgSrc;
             img.onload = () => {
@@ -625,7 +625,7 @@ export function cueUtilities(params, cy, api) {
               __drawImg_lastImageSrc = imgSrc;
             };
           } else {
-            console.log('using cached image');
+            // console.log('using cached image');
             ctx.drawImage(img, x, y, w, h);
           }
         };
