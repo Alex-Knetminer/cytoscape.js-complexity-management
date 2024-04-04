@@ -32,13 +32,16 @@ export default function register(cytoscape) {	// register with cytoscape.js
       setScratch(cy, 'api', api);
       setScratch(cy, 'removedEles', tempRemovedEles);
 
-      cueUtilities(options, cy, api);
+      if (options.cueEnabled) {
+        cueUtilities(options, cy, api); // including this introduces a canvas
+        // dependency and makes vitest tests unreliable
+      }
     }
 
     // Expose the API to the users
     return getScratch(cy, 'api');
   });
-  
+
   // Get the whole scratchpad reserved for this extension (on an element or core) or get a single property of it
   function getScratch(cyOrEle, name) {
     if (cyOrEle.scratch('cyComplexityManagement') === undefined) {

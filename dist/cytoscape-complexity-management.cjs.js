@@ -1719,7 +1719,10 @@ function register(cytoscape) {
       setScratch(cy, 'options', options);
       setScratch(cy, 'api', api);
       setScratch(cy, 'removedEles', tempRemovedEles);
-      cueUtilities(options, cy, api);
+      if (options.cueEnabled) {
+        cueUtilities(options, cy, api); // including this introduces a canvas
+        // dependency and makes vitest tests unreliable
+      }
     }
 
     // Expose the API to the users
